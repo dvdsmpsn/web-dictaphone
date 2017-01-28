@@ -17,11 +17,12 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 h1, h2 {
   font-size: 2rem;
-  text-align: center;
   font-weight: normal;
   padding: 0.5rem 0 0 0;
 }
@@ -32,7 +33,7 @@ h1, h2 {
 
 canvas {
   width: 100%;
-  height: 60px;
+  height: 150px;
   display: block;
   margin-bottom: 0.5rem;
 }
@@ -108,6 +109,15 @@ button.delete {
   font-size: 0.8rem;
 }
 
+button.speechToText {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.transcript {
+	clear: both;
+}
+
 /* Checkbox hack to control information box display */
 
 label {
@@ -137,12 +147,20 @@ aside {
 }
 
 aside p {
-  font-size: 1.2rem;
+  font-size: 1rem;
   margin: 0.5rem 0;
 }
 
 aside a {
   color: #666;
+}
+
+aside pre {
+    height: 300px;
+    overflow: auto;
+    border: 1px solid #ccc;
+    background: #fff;
+    padding: 10px;
 }
 
 /* Toggled State of information box */
@@ -162,7 +180,6 @@ input[type=checkbox]:checked ~ aside {
      goes past a certain size */
   .wrapper {
     width: 90%;
-    max-width: 1000px;
     margin: 0 auto;
   }
 }

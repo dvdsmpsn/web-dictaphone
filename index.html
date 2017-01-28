@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width">
     <title>Web dictaphone</title>	
     <link href="styles/app.css" rel="stylesheet" type="text/css">
-    <link href="styles/install-button.css" rel="stylesheet" type="text/css">
   </head>
   <body>
 
@@ -13,6 +12,7 @@
 
       <header>
         <h1>Web dictaphone</h1>
+		<p>Use <strong>Firefox only</strong> when posting to Watson - for correct audio mime type</p>
       </header>
 
       <section class="main-controls">
@@ -46,14 +46,89 @@
 
       <p>Web dictaphone is built using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Navigator.getUserMedia">getUserMedia</a> and the <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder_API">MediaRecorder API</a>, which provides an easier way to capture Media streams.</p>
 
-      <p>MediaRecorder API currently only works in Firefox 25 (desktop/mobile) and Firefox OS 2.0. gUM and Web Audio have wider support.</p>
+      <p>MediaRecorder API currently only works in Firefox 25+ (desktop/mobile) and Chrome XX. gUM and Web Audio have wider support.</p>
 
       <p>Icon courtesy of <a href="http://findicons.com/search/microphone">Find Icons</a>. Thanks to <a href="http://soledadpenades.com/">Sole</a> for the Oscilloscope code!</p>
+	  
+	  <p>Adapted for Watson Speech to Text using Node Red and the following flow:</p>
+	  
+	  <pre>
+[
+    {
+        "id": "1581d6b6.900be9",
+        "type": "http in",
+        "z": "b0a8e5b0.b2c218",
+        "name": "",
+        "url": "/watson/speech-to-text",
+        "method": "post",
+        "swaggerDoc": "",
+        "x": 149,
+        "y": 85,
+        "wires": [
+            [
+                "8b9c458f.26c978"
+            ]
+        ]
+    },
+    {
+        "id": "3c95b9ac.859f96",
+        "type": "debug",
+        "z": "b0a8e5b0.b2c218",
+        "name": "",
+        "active": true,
+        "console": "false",
+        "complete": "payload",
+        "x": 616,
+        "y": 393,
+        "wires": []
+    },
+    {
+        "id": "350e22e5.26af4e",
+        "type": "http response",
+        "z": "b0a8e5b0.b2c218",
+        "name": "",
+        "x": 567,
+        "y": 449,
+        "wires": []
+    },
+    {
+        "id": "8143a9e7.6f6508",
+        "type": "http request",
+        "z": "b0a8e5b0.b2c218",
+        "name": "POST: Watson Speech to Text",
+        "method": "POST",
+        "ret": "obj",
+        "url": "https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?timestamps=true&word_alternatives_threshold=0.9&keywords=%22colorado%22%2C%22tornado%22%2C%22tornadoes%22&keywords_threshold=0.5&continuous=true",
+        "tls": "",
+        "x": 318,
+        "y": 283,
+        "wires": [
+            [
+                "3c95b9ac.859f96",
+                "350e22e5.26af4e"
+            ]
+        ]
+    },
+    {
+        "id": "8b9c458f.26c978",
+        "type": "function",
+        "z": "b0a8e5b0.b2c218",
+        "name": "set content type",
+        "func": "     msg.headers = {\n         \"Content-Type\" : \"audio/ogg\"\n     }\n     return msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 226,
+        "y": 182,
+        "wires": [
+            [
+                "8143a9e7.6f6508"
+            ]
+        ]
+    }
+]		  
+	  </pre>
 
-      <button id="install-btn">Install app</button>
     </aside>
-
-    <script src="scripts/install.js"></script>  
 
     <!-- Below is your custom application script -->
     <script src="scripts/app.js"></script>

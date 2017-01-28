@@ -13,6 +13,16 @@ var stop = document.querySelector('.stop');
 var soundClips = document.querySelector('.sound-clips');
 var canvas = document.querySelector('.visualizer');
 
+var mimeTypeOgg = 'audio/ogg'; // ';codecs=opus';
+var mimeTypeWebM = 'audio/webm;codecs=opus';
+var mimeType;
+
+if (MediaRecorder.isTypeSupported(mimeTypeOgg)) {
+	mimeType = mimeTypeOgg;  // Firefox
+} else if (MediaRecorder.isTypeSupported(mimeTypeWebM)) {
+	mimeType = mimeTypeWebM; // Chrome
+}
+
 // disable stop button while not recording
 
 stop.disabled = true;
@@ -31,7 +41,7 @@ if (navigator.getUserMedia) {
   var chunks = [];
 
   var onSuccess = function(stream) {
-    var mediaRecorder = new MediaRecorder(stream);
+    var mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
 
     visualize(stream);
 
@@ -84,7 +94,7 @@ if (navigator.getUserMedia) {
       soundClips.appendChild(clipContainer);
 
       audio.controls = true;
-      var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
+      var blob = new Blob(chunks, { 'type' : mimeType });
       chunks = [];
       var audioURL = window.URL.createObjectURL(blob);
       audio.src = audioURL;
@@ -94,6 +104,56 @@ if (navigator.getUserMedia) {
         evtTgt = e.target;
         evtTgt.parentNode.parentNode.removeChild(evtTgt.parentNode);
       }
+	  if (mimeType === mimeTypeOgg) {
+	      var speechToTextButton = document.createElement('button');
+		  speechToTextButton.textContent = 'Speech To Text';
+		  speechToTextButton.className = 'speechToText';
+	      clipContainer.appendChild(speechToTextButton);
+		  
+	  
+		  speechToTextButton.onclick = function (e) {
+			  console.log('speechToText', e);
+			  console.log('mediaRecorder.mimeType',mediaRecorder.mimeType)
+			  console.log('blob', blob);
+			  
+		      var loading = document.createElement('div');
+			  loading.className = 'loading';
+		      loading.textContent = 'Loading...';
+			  clipContainer.appendChild(loading);
+		  
+			  // TODO: send `blob` to Watson 
+			  // https://www.ibm.com/watson/developercloud/doc/speech-to-text/http.shtml
+			  var xhr = new XMLHttpRequest();
+
+			  // Using NodeRed as a proxy to IBM Watson - having enabled CORS by uncommenting the `httpNodeCors` object in `/data/settings.js`
+			  xhr.open("POST", 'http://localhost:1880/watson/speech-to-text', true);
+			  xhr.setRequestHeader('Access-Control-Allow-Origin', location.origin);
+			  xhr.setRequestHeader('Content-Type', mimeType);
+			  xhr.onload = function (oEvent) {
+			    // Uploaded.
+				  console.log('Uploaded', oEvent); //Outputs a DOMString by default
+				  
+
+			  };
+			  xhr.onreadystatechange = function() {
+			    if (xhr.readyState === 4) {
+			      console.log('Response', xhr.response); //Outputs a DOMString by default
+				  
+				  var response = JSON.parse(xhr.response);
+				  console.log('Transcript: ' + response.results[0].alternatives[0].transcript );
+				  
+			      var transcript = document.createElement('div');
+				  transcript.className = 'transcript';
+			      transcript.textContent = response.results[0].alternatives[0].transcript;
+
+				  clipContainer.removeChild(loading);
+				  clipContainer.appendChild(transcript);
+				  
+			    }
+			  }
+			  xhr.send(blob);
+		  }
+	  }
 
       clipLabel.onclick = function() {
         var existingName = clipLabel.textContent;
@@ -142,7 +202,7 @@ function visualize(stream) {
 
     analyser.getByteTimeDomainData(dataArray);
 
-    canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+    canvasCtx.fillStyle = 'rgb(220, 220, 220)';
     canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
 
     canvasCtx.lineWidth = 2;
